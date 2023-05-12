@@ -1,20 +1,110 @@
-code_name: 'UNKNOWN'
+code_name: 'MDI_AIMD_Driver'
 docker:
-  image_name: 'mdiengine'
+  image_name: 'mdi/aimd'
 
   build_image:
-    - echo "Insert commands to build the environment for the engine here"
-    - echo "This will often include using apt-get or pip to install dependencies"
+    - apt-get update --fix-missing
+    - apt-get install -y git wget vim valgrind
+    - pip install cmake
+    - pip install pymdi
+    - pip install mpi4py
+
+    - echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/repo/build/q-e/MDI/src" >> ~/.bashrc
+    - echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/repo/build/q-e/MDI/build/mdi_build-prefix/src/mdi_build-build/MDI_Library" >> ~/.bashrc
 
   build_engine:
-    - echo "Insert commands to build your engine code here"
+    # Obtain a clone of the MDI_AIMD_Driver
+    - |
+      if [ ! -d "build/MDI_AIMD_Driver" ]; then
+        git clone https://github.com/MolSSI-MDI/MDI_AIMD_Driver.git build/MDI_AIMD_Driver
+      fi
+    - mkdir -p /repo/build/MDI_AIMD_Driver/build
+    - cd /repo/build/MDI_AIMD_Driver/build
+    - cmake ..
+    - make
+    - cd /repo
+
+    # Obtain a clone of LAMMPS
+    - |
+      if [ ! -d "build/lammps" ]; then
+        git clone https://github.com/lammps/lammps.git build/lammps
+        git checkout fceff845c7ae434ce8bfe1ca6adf1313e67af2dd
+      fi
+    - LAMMPS_INSTALL='mpi'
+
+    # Build LAMMPS
+    - cd build
+    - mkdir -p lammps/build
+    - cd lammps/build
+    - cmake -D PKG_RIGID=yes -D PKG_MOLECULE=yes -D PKG_KSPACE=yes -D PKG_MDI=yes -D BUILD_SHARED_LIBS=yes -D LAMMPS_MACHINE=mpi ../cmake
+    - make
+    - cp lmp_mpi lmp_mdi
+    - cp liblammps_mpi.so liblammps.so
+
+    # Clone Quantum Espresso
+    - cd /repo
+    - mkdir -p build
+    - |
+      if [ ! -d "build/q-e" ]; then
+        git clone --branch mdi_plugin https://github.com/MolSSI-MDI/q-e.git build/q-e
+        git checkout 3dd5d8cb4a824131aff744b35f19e4c95246631f
+      fi
+    - cd build/q-e
+
+    # Configuring requires a full rebuild, so only do it once
+    - |
+      if [ ! -f "PW/src/pw.x" ]; then
+        ./configure --enable-parallel --enable-openmp --enable-shared FFLAGS="-fPIC" FCFLAGS="-fPIC" CFLAGS="-fPIC" foxflags="-fPIC" try_foxflags="-fPIC -cpp"
+      fi
+    - make -j 1 mdi
+
+    # Add the location of the engines and drivers
+    - echo "/repo/build/MDI_AIMD_Driver/build/MDI_AIMD_Driver/MDI_AIMD_Driver" > /repo/build/MDI_AIMD_Driver/tests/locations/MDI_AIMD_Driver
+    - echo "/repo/build/q-e/MDI/src/qemdi.x" > /repo/build/MDI_AIMD_Driver/tests/locations/QE
+    - echo "/repo/build/lammps/build/lmp_mpi" > /repo/build/MDI_AIMD_Driver/tests/locations/LAMMPS
 
   validate_engine:
-    - echo "Insert code that will confirm that your code has been built successfully"
-    - exit 1
+    # Confirm that the engine's executable exists
+    - ENGINE_EXECUTABLE="build/lammps/build/lmp_mdi"
+    - |
+      if test -f "$ENGINE_EXECUTABLE"; then
+        echo "$ENGINE_EXECUTABLE exists"
+      else
+        echo "Could not find engine executable: $ENGINE_EXECUTABLE"
+        exit 1
+      fi
+
+    # Run a test calculation to confirm that the engine can run correctly
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/repo/build/lammps/src
+    - cd tests/engine_validation
+    - ../../${ENGINE_EXECUTABLE} -in lammps.in > lammps.out
+    - echo "Test output:"
+    - cat lammps.out
+
+
 
 engine_tests:
-  # Provide at least one example input that can be used to test your code's MDI functionality
   script:
-    - echo "Insert commands to run an example calculation here"
-    - exit 1
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/repo/build/lammps/src
+    - cd tests/mdi_test
+    - ../../build/lammps/build/lmp_mdi -mdi "${MDI_OPTIONS}" -in lammps.in > lammps.out
+
+
+
+
+run_scripts:
+  tcp:
+    containers:
+      container1:
+        image: 'mdi/aimd'
+        script:
+          - cd /repo/build/MDI_AIMD_Driver/tests/water
+          - ./tcp.sh
+
+  mpi:
+    containers:
+      container1:
+        image: 'mdi/aimd'
+        script:
+          - cd /repo/build/MDI_AIMD_Driver/tests/water
+          - ./mpi.sh
