@@ -28,6 +28,7 @@ docker:
     - |
       if [ ! -d "build/lammps" ]; then
         git clone https://github.com/lammps/lammps.git build/lammps
+        cd build/lammps
         git checkout fceff845c7ae434ce8bfe1ca6adf1313e67af2dd
       fi
     - LAMMPS_INSTALL='mpi'
@@ -47,6 +48,7 @@ docker:
     - |
       if [ ! -d "build/q-e" ]; then
         git clone --branch mdi_plugin https://github.com/MolSSI-MDI/q-e.git build/q-e
+        cd build/q-e
         git checkout 3dd5d8cb4a824131aff744b35f19e4c95246631f
       fi
     - cd build/q-e
