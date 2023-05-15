@@ -28,13 +28,13 @@ docker:
     - |
       if [ ! -d "build/lammps" ]; then
         git clone https://github.com/lammps/lammps.git build/lammps
-        cd build/lammps
+        cd /repo/build/lammps
         git checkout fceff845c7ae434ce8bfe1ca6adf1313e67af2dd
       fi
     - LAMMPS_INSTALL='mpi'
 
     # Build LAMMPS
-    - cd build
+    - cd /repo/build
     - mkdir -p lammps/build
     - cd lammps/build
     - cmake -D PKG_RIGID=yes -D PKG_MOLECULE=yes -D PKG_KSPACE=yes -D PKG_MDI=yes -D BUILD_SHARED_LIBS=yes -D LAMMPS_MACHINE=mpi ../cmake
@@ -48,10 +48,10 @@ docker:
     - |
       if [ ! -d "build/q-e" ]; then
         git clone --branch mdi_plugin https://github.com/MolSSI-MDI/q-e.git build/q-e
-        cd build/q-e
+        cd /repo/build/q-e
         git checkout 3dd5d8cb4a824131aff744b35f19e4c95246631f
       fi
-    - cd build/q-e
+    - cd /repo/build/q-e
 
     # Configuring requires a full rebuild, so only do it once
     - |
