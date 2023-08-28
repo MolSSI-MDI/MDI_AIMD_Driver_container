@@ -17,6 +17,6 @@ export OMP_NUM_THREADS=1
 /repo/build/lammps/build/lmp_mpi -mdi "-role ENGINE -name MM -method TCP -port 8021 -hostname localhost" -in lammps.in > lammps.out &
 
 #launch driver
-python /repo/tests/aimd_driver.py &
+python /repo/tests/python/aimd_driver.py &
 
 wait
