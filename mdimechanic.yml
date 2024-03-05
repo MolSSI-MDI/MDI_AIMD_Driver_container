@@ -98,7 +98,7 @@ run_scripts:
   tcp:
     containers:
       container1:
-        image: 'mdi/aimd'
+        image: 'mdi/aimd:dev'
         script:
           - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/repo/build/q-e/MDI/src
           - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/repo/build/q-e/MDI/build/mdi_build-prefix/src/mdi_build-build/MDI_Library
@@ -108,12 +108,13 @@ run_scripts:
   mpi:
     containers:
       container1:
-        image: 'mdi/aimd'
+        image: 'mdi/aimd:dev'
         script:
           - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/repo/build/q-e/MDI/src
           - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/repo/build/q-e/MDI/build/mdi_build-prefix/src/mdi_build-build/MDI_Library
           - cd /repo/build/MDI_AIMD_Driver/tests/water
           - ./mpi.sh
+          - cat work/driver.out
 
   multiple:
     containers:
