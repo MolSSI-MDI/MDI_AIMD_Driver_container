@@ -9,6 +9,7 @@ docker:
     - pip install pymdi
     - pip install mpi4py
 
+    - echo "export PATH=$PATH:/repo/build/MDI_AIMD_Driver/build/MDI_AIMD_Driver" >> ~/.profile
     - echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/repo/build/q-e/MDI/src" >> ~/.bashrc
     - echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/repo/build/q-e/MDI/build/mdi_build-prefix/src/mdi_build-build/MDI_Library" >> ~/.bashrc
 
@@ -118,28 +119,18 @@ run_scripts:
 
   multiple:
     containers:
-      container1:
+      aimd:
         image: 'mdi/aimd:dev'
         script:
-          - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mdi_shared/build/q-e/MDI/src
-          - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mdi_shared/build/q-e/MDI/build/mdi_build-prefix/src/mdi_build-build/MDI_Library
-          - cd /mdi_shared/build/MDI_AIMD_Driver/tests/water
-          - rm -rf work
-          - cp -r data work
-          - cd work
-          - export OMP_NUM_THREADS=1
-          - pwd
-          - ls /repo
-          - /mdi_shared/build/q-e/MDI/src/qemdi.x -mdi "-role ENGINE -name QM -method TCP -port 8021 -hostname container1" -in qe.in > qe.out &
-          - /mdi_shared/build/MDI_AIMD_Driver/build/MDI_AIMD_Driver/MDI_AIMD_Driver -mdi "-role DRIVER -name driver -method TCP -port 8021" &
-          #- /mdi_shared/build/lammps/build/lmp_mpi -mdi "-role ENGINE -name MM -method TCP -port 8021 -hostname container1" -in lammps.in > lammps.out &
-          - wait
+          - cd tests/water
+          - MDI_AIMD_Driver -mdi "-role DRIVER -name driver -method TCP -port 8021"
       lammps:
         image: 'mdi/lammps:release'
         script:
-          - cd build/MDI_AIMD_Driver/tests/water
-          - rm -rf work_lammps
-          - cp -r data work_lammps
-          - cd work_lammps
-          - export OMP_NUM_THREADS=1
-          - /repo/build/lammps/build/lmp_mpi -mdi "-role ENGINE -name MM -method TCP -port 8021 -hostname container1" -in lammps.in > lammps.out
+          - cd tests/water
+          - lmp_mpi -mdi "-role ENGINE -name MM -method TCP -port 8021 -hostname aimd" -in lammps.in > lammps.out
+      qe:
+        image: 'mdi/qe:release'
+        script:
+          - cd tests/water
+          - qemdi.x -mdi "-role ENGINE -name QM -method TCP -port 8021 -hostname aimd" -in qe.in > qe.out
