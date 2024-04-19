@@ -1,8 +1,14 @@
 import mdi
+import argparse
+
+# Get command-line arguments
+parser = argparse.ArgumentParser(description="AIMD Driver")
+parser.add_argument("-mdi", help="flags for MDI", default=None, type=str)
+args = parser.parse_args()
+mdi_options = args.mdi
 
 # Initialize the MDI Library
-options = "-role DRIVER -name aimd -method TCP -port 8021"
-mdi.MDI_Init(options)
+mdi.MDI_Init(mdi_options)
 
 # Connect to the engines
 engines = { 'QM': None, 'MM': None }
@@ -53,7 +59,7 @@ for iteration in range(10):
     mdi.MDI_Send_command("<ENERGY", engines['MM'])
     mm_energy = mdi.MDI_Recv(1, mdi.MDI_DOUBLE, engines['MM'])
 
-    print(str(mm_energy) + " " + str(qm_energy), flush=True)
+    print("Iteration: " + str(iteration+1) + "   Energy: " + str(qm_energy), flush=True)
 
 # Send the "EXIT" command to each of the engines
 for engine in engines.values():
