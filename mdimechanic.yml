@@ -15,6 +15,8 @@ docker:
     - echo "export PATH=\$PATH:/repo/build/q-e/MDI/src" >> ~/.bashrc
     - echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/repo/build/q-e/MDI/src" >> ~/.bashrc
     - echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/repo/build/q-e/MDI/build/mdi_build-prefix/src/mdi_build-build/MDI_Library" >> ~/.bashrc
+    - echo "umask 000" >> ~/.bashrc
+    - echo "umask 000" >> ~/.profile
 
   build_engine:
     # Obtain a clone of the MDI_AIMD_Driver
