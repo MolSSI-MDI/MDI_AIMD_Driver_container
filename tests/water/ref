@@ -1,0 +1,13 @@
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/repo/build/q-e/MDI/src
+Engine name: QM
+Engine name: MM
+timestep: 0 -0.0978346 -137.599
+timestep: 1 -0.100167 -137.602
+timestep: 2 -0.103482 -137.607
+timestep: 3 -0.109034 -137.61
+timestep: 4 -0.114992 -137.611
+timestep: 5 -0.115626 -137.614
+timestep: 6 -0.107206 -137.621
+timestep: 7 -0.0914601 -137.63
+timestep: 8 -0.0743942 -137.637
+timestep: 9 -0.0616925 -137.641
